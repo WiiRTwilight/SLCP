@@ -1,4 +1,4 @@
-package com.linyuyuan.slcp;
+package com.lyy2182.slcp;
 
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;

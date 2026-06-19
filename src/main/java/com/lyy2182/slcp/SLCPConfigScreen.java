@@ -1,4 +1,4 @@
-package com.linyuyuan.slcp;
+package com.lyy2182.slcp;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;

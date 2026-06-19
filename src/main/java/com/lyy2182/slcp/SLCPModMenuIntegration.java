@@ -1,4 +1,4 @@
-package com.linyuyuan.slcp;
+package com.lyy2182.slcp;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;

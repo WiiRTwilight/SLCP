@@ -10,9 +10,9 @@
     "icon": "assets/slcp/icon.png",
     "environment": "*",
     "entrypoints": {
-        "main": ["com.linyuyuan.slcp.SLCPMod"],
-        "client": ["com.linyuyuan.slcp.SLCPModClient"],
-        "modmenu": ["com.linyuyuan.slcp.SLCPModMenuIntegration"]
+        "main": ["com.lyy2182.slcp.SLCPMod"],
+        "client": ["com.lyy2182.slcp.SLCPModClient"],
+        "modmenu": ["com.lyy2182.slcp.SLCPModMenuIntegration"]
     },
     "depends": {
         "fabricloader": ">=0.19.3",
