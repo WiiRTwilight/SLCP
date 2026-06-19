@@ -1,0 +1,26 @@
+{
+    "schemaVersion": 1,
+    "id": "slcp",
+    "version": "${version}",
+    "name": "SLCP",
+    "description": "Some Long Config Puller - Config-driven file downloader",
+    "authors": ["linyuyuan2010"],
+    "contact": {},
+    "license": "Apache-2.0",
+    "icon": "assets/slcp/icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "main": ["com.linyuyuan.slcp.SLCPMod"],
+        "client": ["com.linyuyuan.slcp.SLCPModClient"],
+        "modmenu": ["com.linyuyuan.slcp.SLCPModMenuIntegration"]
+    },
+    "depends": {
+        "fabricloader": ">=0.19.3",
+        "minecraft": "~1.21.11",
+        "java": ">=21",
+        "fabric-api": ">=0.141.0+1.21.11"
+    },
+    "suggests": {
+        "modmenu": ">=13.0.0"
+    }
+}
