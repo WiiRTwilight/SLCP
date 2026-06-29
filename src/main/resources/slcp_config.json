@@ -2,7 +2,9 @@
     {
         "LICENSE": {
             "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-            "output": "./"
+            "output": "./",
+            "isServerDat": false,
+            "注意": "如果isServerDat为true 则output会被强制覆写为\"./servers.dat.tmp\"方便解析nbt"
         }
     }
 ]

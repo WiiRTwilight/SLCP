@@ -3,9 +3,6 @@ plugins {
     id 'maven-publish'
 }
 
-version = project.mod_version
-group = project.maven_group
-
 base {
     archivesName = project.archives_base_name
 }
@@ -24,10 +21,11 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.version
-    filteringCharset "UTF-8"
+    def modVersion = project.version
+    inputs.property "version", modVersion
+    filteringCharset = "UTF-8"
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand "version": modVersion
     }
 }
 

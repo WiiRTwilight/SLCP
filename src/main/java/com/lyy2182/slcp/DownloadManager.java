@@ -14,6 +14,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;  // 使用了 MessageDigest
 
 public class DownloadManager {
 
@@ -61,10 +62,11 @@ public class DownloadManager {
         }
     }
 
-    private static void downloadEntry(SLCPConfig.Entry entry) throws IOException {
+    private static void downloadEntry(SLCPConfig.Entry entry) throws IOException, NoSuchAlgorithmException {
         String name = entry.name();
         String urlStr = entry.url();
         String outputDir = entry.output();
+        boolean isSD = entry.isServerDat();
         Path gameDir = net.fabricmc.loader.api.FabricLoader.getInstance().getGameDir();
 
         String filename = extractFilename(urlStr);
@@ -132,6 +134,9 @@ public class DownloadManager {
         }
 
         LOGGER.info("[{}] Download complete: {} bytes -> {}", name, bytesRead, outputPath);
+        if (isSD) {
+            ServersDatMerger.doServerListMerge(SLCPModClient.serverList);
+        }
     }
 
     static String extractFilename(String urlStr) {

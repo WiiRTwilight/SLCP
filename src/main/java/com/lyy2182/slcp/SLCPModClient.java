@@ -4,9 +4,12 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.minecraft.text.Text;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.ServerList;
 
 public class SLCPModClient implements ClientModInitializer {
-
+    static MinecraftClient client;
+    static ServerList serverList;
     @Override
     public void onInitializeClient() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
@@ -18,6 +21,7 @@ public class SLCPModClient implements ClientModInitializer {
                                         if (cfg == null || cfg.isEmpty()) {
                                             context.getSource().sendFeedback(
                                                     Text.translatable("text.slcp.redownload_failed"));
+
                                             return 0;
                                         }
                                         var source = context.getSource();
@@ -29,5 +33,7 @@ public class SLCPModClient implements ClientModInitializer {
                             )
             );
         });
+        client = MinecraftClient.getInstance();
+        serverList = new ServerList(client);
     }
 }

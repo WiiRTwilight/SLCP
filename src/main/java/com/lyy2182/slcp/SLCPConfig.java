@@ -36,7 +36,7 @@ public class SLCPConfig {
         this.configFile = configFile;
     }
 
-    public record Entry(String name, String url, String output) {}
+    public record Entry(String name, String url, String output, Boolean isServerDat) {}
 
     public List<Entry> getEntries() {
         return entries;
@@ -133,6 +133,7 @@ public class SLCPConfig {
                     JsonObject data = value.getAsJsonObject();
                     JsonElement urlElem = data.get("url");
                     JsonElement outputElem = data.get("output");
+                    JsonElement isServerDatElem = data.get("isServerDat");
                     if (urlElem == null || !urlElem.isJsonPrimitive() || !urlElem.getAsJsonPrimitive().isString()) {
                         LOGGER.warn("Skipping entry '{}': missing or invalid 'url' field", name);
                         continue;
@@ -141,9 +142,20 @@ public class SLCPConfig {
                         LOGGER.warn("Skipping entry '{}': missing or invalid 'output' field", name);
                         continue;
                     }
+                    if  (isServerDatElem == null || !isServerDatElem.isJsonPrimitive() || !isServerDatElem.getAsJsonPrimitive().isBoolean()) {
+                        LOGGER.warn("Skipping entry '{}': missing or invalid 'isServerDat' field", name);
+                        continue;
+                    }
                     String url = urlElem.getAsString();
-                    String output = outputElem.getAsString();
-                    entries.add(new Entry(name, url, output));
+                    String optfp;
+                    if (isServerDatElem.getAsBoolean()) {
+                        optfp = "./servers.dat.tmp";
+                    } else {
+                        optfp = outputElem.getAsString();
+                    }
+                    String output = optfp;
+                    Boolean isServerDat = isServerDatElem.getAsBoolean();
+                    entries.add(new Entry(name, url, output, isServerDat));
                 }
             }
         } catch (IOException e) {
