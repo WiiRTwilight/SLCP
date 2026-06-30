@@ -2,5 +2,8 @@
     "screen.slcp.config": "SLCP Configuration",
     "button.slcp.redownload": "Redownload SLCP Files",
     "text.slcp.redownload_done": "SLCP: Redownload complete",
-    "text.slcp.redownload_failed": "SLCP: Config not loaded, cannot redownload"
+    "text.slcp.redownload_failed": "SLCP: Config not loaded, cannot redownload",
+    "button.slcp.remerge_server": "Remerge servers list",
+    "text.slcp.remerge_failed": "Remerge failed",
+    "text.slcp.remerge_done": "Remerge done"
 }

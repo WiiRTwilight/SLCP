@@ -32,15 +32,37 @@ public class SLCPConfigScreen extends Screen {
                         return;
                     }
                     var client = MinecraftClient.getInstance();
-                    DownloadManager.downloadAll(cfg, false, () -> {
+                    DownloadManager.downloadAll(cfg, false, () -> client.execute(() -> {
                         if (client.player != null) {
-                            client.player.sendMessage(
-                                    Text.translatable("text.slcp.redownload_done"), false);
+                            client.player.sendMessage(Text.translatable("text.slcp.redownload_done"), false);
                         }
-                    });
+                    }));
                 })
-                .dimensions(centerX - 100, centerY - 10, 200, 20)
+                .dimensions(centerX - 100, centerY - 20, 150, 20)
                 .build());
+
+        this.addDrawableChild(ButtonWidget.builder(
+            Text.translatable("button.slcp.remerge_server"),
+            button -> {
+                SLCPConfig cfg = SLCPMod.config;
+                if (cfg == null || cfg.isEmpty()) {
+                    if (this.client != null && this.client.player != null) {
+                        this.client.player.sendMessage(
+                                Text.translatable("text.slcp.remerge_failed"), false);
+                    }
+                    return;
+                }
+                try {
+                    ServersDatMerger.doServerListMerge(SLCPModClient.serverList);
+                } catch (Exception e) {
+                    if (this.client.player != null) {
+                        this.client.player.sendMessage(
+                                Text.translatable("text.slcp.remerge_failed"), false);
+                    }
+                }
+            })
+            .dimensions(centerX - 100, centerY - 50, 150, 20)
+            .build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.translatable("gui.done"),

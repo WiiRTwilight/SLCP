@@ -1,6 +1,0 @@
-{
-    "screen.slcp.config": "SLCP Configuration",
-    "button.slcp.redownload": "Redownload SLCP Files",
-    "text.slcp.redownload_done": "SLCP: Redownload complete",
-    "text.slcp.redownload_failed": "SLCP: Config not loaded, cannot redownload"
-}
