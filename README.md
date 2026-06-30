@@ -1,6 +1,6 @@
 # SLCP - Some Long Config Puller
 
-**温馨提示：本项目使用生成式AI开发**
+**本项目使用DeepSeek和OpenCode开发，花了我将近20块中国元，所以我必须在这里唧唧歪歪一下以表达对钱的思念之情。**
 
 ## 什么是 SLCP
 
