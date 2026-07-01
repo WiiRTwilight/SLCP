@@ -1,39 +1,24 @@
 package com.lyy2182.slcp;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.minecraft.text.Text;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.ServerList;
 
+import java.security.NoSuchAlgorithmException;
+
 public class SLCPModClient implements ClientModInitializer {
-    static MinecraftClient client;
     static ServerList serverList;
     @Override
     public void onInitializeClient() {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(
-                    ClientCommandManager.literal("slcp")
-                            .then(ClientCommandManager.literal("redownload")
-                                    .executes(context -> {
-                                        SLCPConfig cfg = SLCPMod.config;
-                                        if (cfg == null || cfg.isEmpty()) {
-                                            context.getSource().sendFeedback(
-                                                    Text.translatable("text.slcp.redownload_failed"));
-
-                                            return 0;
-                                        }
-                                        var source = context.getSource();
-                                        DownloadManager.downloadAll(cfg, false, () ->
-                                                source.sendFeedback(
-                                                        Text.translatable("text.slcp.redownload_done")));
-                                        return 1;
-                                    })
-                            )
-            );
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
+            client = MinecraftClient.getInstance();
+            serverList = new ServerList(client);
+            try {
+                ServersDatMerger.doServerListMerge(serverList);
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            }
         });
-        client = MinecraftClient.getInstance();
-        serverList = new ServerList(client);
     }
 }

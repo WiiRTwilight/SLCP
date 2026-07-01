@@ -16,7 +16,7 @@ public class SLCPMod implements ModInitializer {
         LOGGER.info("SLCP initializing...");
         config = SLCPConfig.load();
 
-        if (config != null && !config.isEmpty()) {
+        if (!config.isEmpty()) {
             DownloadManager.downloadAll(config, true);
         } else {
             LOGGER.info("No entries to download at startup");

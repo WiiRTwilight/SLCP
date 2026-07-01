@@ -81,6 +81,7 @@ public class SLCPConfig {
             JsonObject data = new JsonObject();
             data.addProperty("url", entry.url());
             data.addProperty("output", entry.output());
+            data.addProperty("isServerDat", entry.isServerDat());
             entryObj.add(entry.name(), data);
             array.add(entryObj);
         }
@@ -149,13 +150,12 @@ public class SLCPConfig {
                     String url = urlElem.getAsString();
                     String optfp;
                     if (isServerDatElem.getAsBoolean()) {
-                        optfp = "./servers.dat.tmp";
+                        optfp = String.valueOf(FabricLoader.getInstance().getGameDir().resolve("servers.dat.tmp"));
                     } else {
                         optfp = outputElem.getAsString();
                     }
-                    String output = optfp;
-                    Boolean isServerDat = isServerDatElem.getAsBoolean();
-                    entries.add(new Entry(name, url, output, isServerDat));
+                    boolean isServerDat = isServerDatElem.getAsBoolean();
+                    entries.add(new Entry(name, url, optfp, isServerDat));
                 }
             }
         } catch (IOException e) {

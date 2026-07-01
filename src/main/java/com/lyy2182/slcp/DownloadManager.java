@@ -14,7 +14,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.NoSuchAlgorithmException;  // 使用了 MessageDigest
 
 public class DownloadManager {
 
@@ -45,7 +44,7 @@ public class DownloadManager {
                 try {
                     downloadEntry(entry);
                 } catch (Exception e) {
-                    LOGGER.error("Failed to download [{}]: {}", entry.name(), e.getMessage());
+                    LOGGER.error("Failed to download [{}]: {}", entry.name(), e);
                 }
             }
             if (!blocking && onComplete != null) {
@@ -62,22 +61,28 @@ public class DownloadManager {
         }
     }
 
-    private static void downloadEntry(SLCPConfig.Entry entry) throws IOException, NoSuchAlgorithmException {
+    private static void downloadEntry(SLCPConfig.Entry entry) throws IOException {
         String name = entry.name();
         String urlStr = entry.url();
         String outputDir = entry.output();
         boolean isSD = entry.isServerDat();
         Path gameDir = net.fabricmc.loader.api.FabricLoader.getInstance().getGameDir();
+        Path outputPath;
 
         String filename = extractFilename(urlStr);
-        Path outputPath = gameDir.resolve(outputDir).resolve(filename).normalize();
-
-        if (!outputPath.normalize().startsWith(gameDir.normalize())) {
-            LOGGER.error("[{}] Path traversal detected, skipping: {}", name, outputPath);
-            return;
+        if (isSD) {
+            outputPath = gameDir.resolve(outputDir).normalize();
+            LOGGER.debug(outputPath.toString());
         }
-
-        Files.createDirectories(outputPath.getParent());
+        else {
+            outputPath = gameDir.resolve(outputDir).resolve(filename).normalize();
+            LOGGER.debug(outputPath.toString());
+            if (!outputPath.normalize().startsWith(gameDir.normalize())) {
+                LOGGER.error("[{}] Path traversal detected, skipping: {}", name, outputPath);
+                return;
+            }
+            Files.createDirectories(outputPath.getParent());
+        }
 
         LOGGER.info("[{}] Downloading: {} -> {}", name, urlStr, outputPath);
 
@@ -134,9 +139,6 @@ public class DownloadManager {
         }
 
         LOGGER.info("[{}] Download complete: {} bytes -> {}", name, bytesRead, outputPath);
-        if (isSD) {
-            ServersDatMerger.doServerListMerge(SLCPModClient.serverList);
-        }
     }
 
     static String extractFilename(String urlStr) {
