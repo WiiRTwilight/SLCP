@@ -21,6 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * SLCP 配置管理。负责从 {@code config/slcp/config.json} 加载、解析和保存下载条目。
+ */
 public class SLCPConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("slcp");
@@ -36,7 +39,8 @@ public class SLCPConfig {
         this.configFile = configFile;
     }
 
-    public record Entry(String name, String url, String output, Boolean isServerDat) {}
+    public record Entry(String name, String url, String output, Boolean isServerDat) {
+    }
 
     public List<Entry> getEntries() {
         return entries;
@@ -139,22 +143,18 @@ public class SLCPConfig {
                         LOGGER.warn("Skipping entry '{}': missing or invalid 'url' field", name);
                         continue;
                     }
-                    if (outputElem == null || !outputElem.isJsonPrimitive() || !outputElem.getAsJsonPrimitive().isString()) {
+                    if (outputElem == null || !outputElem.isJsonPrimitive()
+                            || !outputElem.getAsJsonPrimitive().isString()) {
                         LOGGER.warn("Skipping entry '{}': missing or invalid 'output' field", name);
                         continue;
                     }
-                    if  (isServerDatElem == null || !isServerDatElem.isJsonPrimitive() || !isServerDatElem.getAsJsonPrimitive().isBoolean()) {
-                        LOGGER.warn("Skipping entry '{}': missing or invalid 'isServerDat' field", name);
-                        continue;
+                    boolean isServerDat = false;
+                    if (isServerDatElem != null && isServerDatElem.isJsonPrimitive()
+                            && isServerDatElem.getAsJsonPrimitive().isBoolean()) {
+                        isServerDat = isServerDatElem.getAsBoolean();
                     }
                     String url = urlElem.getAsString();
-                    String optfp;
-                    if (isServerDatElem.getAsBoolean()) {
-                        optfp = String.valueOf(FabricLoader.getInstance().getGameDir().resolve("servers.dat.tmp"));
-                    } else {
-                        optfp = outputElem.getAsString();
-                    }
-                    boolean isServerDat = isServerDatElem.getAsBoolean();
+                    String optfp = outputElem.getAsString();
                     entries.add(new Entry(name, url, optfp, isServerDat));
                 }
             }
