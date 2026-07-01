@@ -6,6 +6,11 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 
+/**
+ * SLCP 配置界面。
+ * <p>
+ * 提供 "重新下载" 和 "重新合并服务器列表" 两个操作按钮。
+ */
 public class SLCPConfigScreen extends Screen {
 
     private final Screen parent;
@@ -42,27 +47,27 @@ public class SLCPConfigScreen extends Screen {
                 .build());
 
         this.addDrawableChild(ButtonWidget.builder(
-            Text.translatable("button.slcp.remerge_server"),
-            button -> {
-                SLCPConfig cfg = SLCPMod.config;
-                if (cfg == null || cfg.isEmpty()) {
-                    if (this.client != null && this.client.player != null) {
-                        this.client.player.sendMessage(
-                                Text.translatable("text.slcp.remerge_failed"), false);
+                Text.translatable("button.slcp.remerge_server"),
+                button -> {
+                    SLCPConfig cfg = SLCPMod.config;
+                    if (cfg == null || cfg.isEmpty()) {
+                        if (this.client != null && this.client.player != null) {
+                            this.client.player.sendMessage(
+                                    Text.translatable("text.slcp.remerge_failed"), false);
+                        }
+                        return;
                     }
-                    return;
-                }
-                try {
-                    ServersDatMerger.doServerListMerge(SLCPModClient.serverList);
-                } catch (Exception e) {
-                    if (this.client.player != null) {
-                        this.client.player.sendMessage(
-                                Text.translatable("text.slcp.remerge_failed"), false);
+                    try {
+                        ServersDatMerger.doServerListMerge(SLCPModClient.serverList);
+                    } catch (Exception e) {
+                        if (this.client.player != null) {
+                            this.client.player.sendMessage(
+                                    Text.translatable("text.slcp.remerge_failed"), false);
+                        }
                     }
-                }
-            })
-            .dimensions(centerX - 100, centerY - 50, 150, 20)
-            .build());
+                })
+                .dimensions(centerX - 100, centerY - 50, 150, 20)
+                .build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.translatable("gui.done"),
