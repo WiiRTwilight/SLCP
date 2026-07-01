@@ -36,3 +36,4 @@ jobs:
           name: prod ${{ github.sha }}
           path: build/libs/*.jar
           if-no-files-found: error
+          retention-days: 1
