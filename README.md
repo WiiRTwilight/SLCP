@@ -4,17 +4,17 @@
 
 ## 什么是 SLCP
 
-SLCP 是一个用于从外部自动下载文件的 Fabric 模组，通过配置文件定义要下载的文件。本项目的本意是用于自动更新一些模组配置文件和多人游戏服务器列表`servers.dat`，故名为 Some Long Config Puller, 即"一些长配置拉取器"。
+SLCP 是一个用于从外部自动下载文件的 Fabric 模组，通过配置文件定义要下载的文件。本项目的本意是用于自动更新一些模组配置文件和多人游戏服务器列表`[servers.dat](https://minecraft.fandom.com/zh/wiki/Servers.dat%E6%A0%BC%E5%BC%8F)`，故名为 Some Long Config Puller, 即"一些长配置拉取器"。
 
 对于多人服务器列表，该模组还支持合并玩家自己的服务器列表和模组下载的服务器列表，以保证玩家的服务器列表不会被直接下载替换。
 
 ## 使用要求
 
-- Java 21
-- Minecraft 1.21.11
-- Fabric Loader 0.19.2+
-- Fabric API 0.141.0+
-- ModMenu（可选）
+- [Java 21](https://bell-sw.com/pages/downloads/?version=java-21&vtabs=true)
+- [Minecraft 1.21.11](https://minecraft.wiki/w/Java_Edition_1.21.11)
+- [Fabric Loader 0.19.2+](https://fabricmc.net/use/installer/)
+- [Fabric API 0.141.0+](https://modrinth.com/mod/fabric-api)
+- [ModMenu](https://modrinth.com/mod/modmenu) (可选)
 
 ## 配置
 
