@@ -22,4 +22,6 @@ gradle-app.setting
 
 .idea
 
+.vscode
+
 **/run
