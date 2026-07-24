@@ -3,7 +3,20 @@
         "LICENSE": {
             "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
             "output": "./",
-            "isServerDat": false
+            "processor": {
+                "jar": "_this",
+                "class": "com.lyy2182.slcp.processors.DefaultProcessors"
+            }
+        }
+    },
+    {
+        "example_server_list": {
+            "url": "https://example.com/servers.dat",
+            "output": "./",
+            "processor": {
+                "jar": "_this",
+                "class": "com.lyy2182.slcp.processors.ServersDatMergeProcessor"
+            }
         }
     }
 ]

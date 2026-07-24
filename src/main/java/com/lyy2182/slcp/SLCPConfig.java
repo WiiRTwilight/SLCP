@@ -39,7 +39,7 @@ public class SLCPConfig {
         this.configFile = configFile;
     }
 
-    public record Entry(String name, String url, String output, Boolean isServerDat) {
+    public record Entry(String name, String url, String output, String jar, String clazz) {
     }
 
     public List<Entry> getEntries() {
@@ -85,7 +85,12 @@ public class SLCPConfig {
             JsonObject data = new JsonObject();
             data.addProperty("url", entry.url());
             data.addProperty("output", entry.output());
-            data.addProperty("isServerDat", entry.isServerDat());
+            if (!entry.jar().isEmpty() && !entry.clazz().isEmpty()) {
+                JsonObject processorObj = new JsonObject();
+                processorObj.addProperty("jar", entry.jar());
+                processorObj.addProperty("class", entry.clazz());
+                data.add("processor", processorObj);
+            }
             entryObj.add(entry.name(), data);
             array.add(entryObj);
         }
@@ -138,7 +143,6 @@ public class SLCPConfig {
                     JsonObject data = value.getAsJsonObject();
                     JsonElement urlElem = data.get("url");
                     JsonElement outputElem = data.get("output");
-                    JsonElement isServerDatElem = data.get("isServerDat");
                     if (urlElem == null || !urlElem.isJsonPrimitive() || !urlElem.getAsJsonPrimitive().isString()) {
                         LOGGER.warn("Skipping entry '{}': missing or invalid 'url' field", name);
                         continue;
@@ -148,14 +152,27 @@ public class SLCPConfig {
                         LOGGER.warn("Skipping entry '{}': missing or invalid 'output' field", name);
                         continue;
                     }
-                    boolean isServerDat = false;
-                    if (isServerDatElem != null && isServerDatElem.isJsonPrimitive()
-                            && isServerDatElem.getAsJsonPrimitive().isBoolean()) {
-                        isServerDat = isServerDatElem.getAsBoolean();
-                    }
                     String url = urlElem.getAsString();
                     String optfp = outputElem.getAsString();
-                    entries.add(new Entry(name, url, optfp, isServerDat));
+
+                    // processor字段为可选，缺失或无效时使用空字符串(即不使用处理器)
+                    String jar = "";
+                    String clazz = "";
+                    JsonElement processorElem = data.get("processor");
+                    if (processorElem != null && processorElem.isJsonObject()) {
+                        JsonObject pros = processorElem.getAsJsonObject();
+                        JsonElement jarElem = pros.get("jar");
+                        JsonElement classElem = pros.get("class");
+                        if (jarElem != null && jarElem.isJsonPrimitive()
+                                && jarElem.getAsJsonPrimitive().isString()) {
+                            jar = jarElem.getAsString();
+                        }
+                        if (classElem != null && classElem.isJsonPrimitive()
+                                && classElem.getAsJsonPrimitive().isString()) {
+                            clazz = classElem.getAsString();
+                        }
+                    }
+                    entries.add(new Entry(name, url, optfp, jar, clazz));
                 }
             }
         } catch (IOException e) {
