@@ -21,29 +21,31 @@ SLCP 是一个用于从外部自动下载文件的 Fabric 模组，通过配置�
 打开游戏实例或者服务器实例文件夹，有个`config`文件夹，打开找到里面的`slcp`文件夹，就能找到`config.json`, 按照如下格式进行配置：
 ```json
 [
-    {
-        "LICENSE": {
-            "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-            "output": "./config/slcp/",
-            "isServerDat": false
-        }
-    },
-    {
-        "serverlist": {
-            "url": "https://exam.ple/servers.dat",
-            "output": "./",
-            "isServerDat": true
-        }
-    },
-        {
-        "aaa": {
-            "url": "https://exam.ple/something.file",
-            "output": "./",
-            "isServerDat": false
-        }
+  {
+    "LICENSE": {
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "output": "./",
+      "processor": {
+        "jar": "_this",
+        "class": "com.lyy2182.slcp.processors.DefaultProcessors"
+      }
     }
+  },
+  {
+    "example_server_list": {
+      "url": "https://example.com/servers.dat",
+      "output": "./",
+      "processor": {
+        "jar": "_this",
+        "class": "com.lyy2182.slcp.processors.ServersDatMergeProcessor"
+      }
+    }
+  }
 ]
 ```
+
+`jar`如果为`_this`意思是mod内置的处理器
+`class`是处理器的类 处理器的类必须实现[Processors.java](src/main/java/com/lyy2182/slcp/processors/Processors.java)接口
 
 ## 鸣谢
 

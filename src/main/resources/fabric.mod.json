@@ -15,7 +15,6 @@
     "environment": "*",
     "entrypoints": {
         "main": ["com.lyy2182.slcp.SLCPMod"],
-        "client": ["com.lyy2182.slcp.SLCPModClient"],
         "modmenu": ["com.lyy2182.slcp.SLCPModMenuIntegration"]
     },
     "depends": {
