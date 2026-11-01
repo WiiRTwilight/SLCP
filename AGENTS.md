@@ -3,14 +3,13 @@
 ## Build & run
 - Build: `gradle build` (output at `build/libs/slcp-<version>.jar`)
 - Requires JDK 21 (enforced in `build.gradle` via `options.release = 21`)
-- No Gradle wrapper committed; use system `gradle` command
+- Gradle wrapper is committed; use `gradlew` or system `gradle` command
 - No test suite exists
 
 ## Architecture
 - Minecraft 1.21.11 Fabric mod using Fabric Loom plugin
 - **Entrypoints** (declared in `fabric.mod.json`):
   - `main` → `SLCPMod.java` — loads config + downloads on server/client start
-  - `client` → `SLCPModClient.java` — registers `/slcp redownload` command
   - `modmenu` → `SLCPModMenuIntegration.java` — ModMenu config screen (optional dep)
 - **Core logic**: `DownloadManager.java` (HttpURLConnection), `SLCPConfig.java` (JSON config load/save/parse)
 - **GUI**: `SLCPConfigScreen.java` — a single "Redownload" button screen
@@ -35,5 +34,5 @@
 ## HTTP
 - Uses raw `java.net.HttpURLConnection` (no Apache/OkHttp)
 - Manual redirect handling (up to 5 hops), `InstanceFollowRedirects` is `false`
-- User-Agent header value is at `DownloadManager.java:22`
+- User-Agent header value is at `DownloadManager.java:28`
 - Timeouts: connect 30s, read 300s

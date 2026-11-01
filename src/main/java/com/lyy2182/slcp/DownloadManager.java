@@ -3,27 +3,18 @@ package com.lyy2182.slcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.*;
+import java.lang.reflect.Modifier;
+import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
+import com.lyy2182.slcp.processors.Processors;
 
 /**
  * 文件下载管理器。
  * <p>
- * 根据配置下载普通文件到磁盘，或将 isServerDat 类型的数据缓存到内存供合并使用。
- * 使用原生 {@link HttpURLConnection}，手动处理重定向。
+ * 根据配置下载文件到磁盘。使用原生 {@link HttpURLConnection}，手动处理重定向。
  */
 public class DownloadManager {
 
@@ -34,22 +25,6 @@ public class DownloadManager {
     private static final int MAX_REDIRECTS = 5;
     private static final int BUFFER_SIZE = 8192;
     private static final String FALLBACK_FILENAME = "download";
-
-    private static final Map<String, byte[]> serverDatBuffers = new ConcurrentHashMap<>();
-
-    /**
-     * 获取远程服务器列表数据的只读视图。
-     *
-     * @return entry name → NBT 字节数据
-     */
-    public static Map<String, byte[]> getServerDatBuffers() {
-        return Collections.unmodifiableMap(serverDatBuffers);
-    }
-
-    /** 清空服务器列表数据缓冲区。 */
-    public static void clearServerDatBuffers() {
-        serverDatBuffers.clear();
-    }
 
     /**
      * 下载所有配置条目（阻塞模式，不带回调）。
@@ -100,24 +75,19 @@ public class DownloadManager {
     }
 
     /**
-     * 下载单个配置条目。
-     * <p>
-     * isServerDat 条目下载到内存缓冲区，普通条目下载到磁盘。
+     * 下载单个配置条目到磁盘。先解析处理器(如有配置)并执行preProcessor,
+     * 再发起HTTP请求下载文件,经postProcessor处理后写入磁盘。
      *
      * @param entry 配置条目
      */
     private static void downloadEntry(SLCPConfig.Entry entry) throws IOException {
         String name = entry.name();
         String urlStr = entry.url();
-        boolean isSD = entry.isServerDat();
 
-        if (isSD) {
-            LOGGER.info("[{}] Downloading server list to memory: {}", name, urlStr);
-            URL url = URI.create(urlStr).toURL();
-            byte[] data = downloadToBytes(url);
-            serverDatBuffers.put(name, data);
-            LOGGER.info("[{}] Server list buffered: {} bytes", name, data.length);
-            return;
+        // 解析并实例化处理器,未配置或加载失败时返回null
+        Processors processor = resolveProcessor(entry);
+        if (processor != null) {
+            entry = processor.preProcessor(entry);
         }
 
         String outputDir = entry.output();
@@ -162,7 +132,6 @@ public class DownloadManager {
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 throw new IOException("HTTP " + responseCode + " for " + url);
             }
-
             break;
         }
 
@@ -171,14 +140,17 @@ public class DownloadManager {
         }
 
         long bytesRead;
-        try (InputStream in = new BufferedInputStream(connection.getInputStream());
-                OutputStream out = new BufferedOutputStream(Files.newOutputStream(outputPath))) {
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int read;
-            bytesRead = 0;
-            while ((read = in.read(buffer)) != -1) {
-                out.write(buffer, 0, read);
-                bytesRead += read;
+        // 使用嵌套try-with-resources确保postProcessor返回的流和磁盘输出流都被正确关闭
+        try (InputStream rawIn = new BufferedInputStream(connection.getInputStream())) {
+            try (InputStream source = (processor != null) ? processor.postProcessor(entry, rawIn) : rawIn;
+                 OutputStream out = new BufferedOutputStream(Files.newOutputStream(outputPath))) {
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int read;
+                bytesRead = 0;
+                while ((read = source.read(buffer)) != -1) {
+                    out.write(buffer, 0, read);
+                    bytesRead += read;
+                }
             }
         } finally {
             connection.disconnect();
@@ -188,59 +160,59 @@ public class DownloadManager {
     }
 
     /**
-     * 下载 URL 内容到内存 byte[]，支持重定向。
+     * 解析并实例化配置中指定的预处理器/后处理器。
+     * <p>
+     * 若jar为"_this"则从mod自身classpath加载处理器类;
+     * 否则从指定的外部jar文件创建URLClassLoader加载。
+     * 若未配置处理器(jar或clazz为空)或加载失败,返回null,下载将跳过处理器。
      *
-     * @param url 目标 URL
-     * @return 下载的数据
+     * @param entry 配置条目
+     * @return 处理器实例,或null表示不使用处理器
      */
-    private static byte[] downloadToBytes(URL url) throws IOException {
-        int redirectCount = 0;
-        HttpURLConnection connection = null;
-
-        while (redirectCount <= MAX_REDIRECTS) {
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(CONNECT_TIMEOUT);
-            connection.setReadTimeout(READ_TIMEOUT);
-            connection.setInstanceFollowRedirects(false);
-            connection.setRequestProperty("User-Agent", USER_AGENT);
-            connection.setRequestMethod("GET");
-            connection.connect();
-
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
-                    responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-                    responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
-                String location = connection.getHeaderField("Location");
-                connection.disconnect();
-                if (location == null || location.isEmpty()) {
-                    throw new IOException("Redirect with no Location header");
-                }
-                url = URI.create(location).toURL();
-                redirectCount++;
-                continue;
-            }
-
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new IOException("HTTP " + responseCode + " for " + url);
-            }
-
-            break;
+    private static Processors resolveProcessor(SLCPConfig.Entry entry) {
+        String jar = entry.jar();
+        String clazzName = entry.clazz();
+        if (jar.isEmpty() || clazzName.isEmpty()) {
+            return null;
         }
 
-        if (redirectCount > MAX_REDIRECTS) {
-            throw new IOException("Too many redirects (> " + MAX_REDIRECTS + ")");
-        }
-
-        try (InputStream in = new BufferedInputStream(connection.getInputStream());
-                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int read;
-            while ((read = in.read(buffer)) != -1) {
-                out.write(buffer, 0, read);
+        URLClassLoader loader = null;
+        try {
+            ClassLoader parent;
+            if (!jar.equals("_this")) {
+                // 从外部jar文件加载处理器
+                URL jarUrl = new File(jar).toURI().toURL();
+                loader = new URLClassLoader(new URL[]{jarUrl},
+                        SLCPMod.class.getClassLoader());
+                parent = loader;
+            } else {
+                // 使用mod自身的classloader加载内置处理器
+                parent = SLCPMod.class.getClassLoader();
             }
-            return out.toByteArray();
+
+            Class<?> clz = parent.loadClass(clazzName);
+
+            // 接口或抽象类无法实例化,跳过处理器
+            if (clz.isInterface()
+                    || Modifier.isAbstract(clz.getModifiers())
+                    || !Processors.class.isAssignableFrom(clz)) {
+                LOGGER.warn("[{}] Processor class {} is not instantiable, skipping processor",
+                        entry.name(), clazzName);
+                return null;
+            }
+
+            return (Processors) clz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            LOGGER.warn("[{}] Failed to load processor {}: {}",
+                    entry.name(), clazzName, e.getMessage());
+            return null;
         } finally {
-            connection.disconnect();
+            if (loader != null) {
+                try {
+                    loader.close();
+                } catch (IOException ignored) {
+                }
+            }
         }
     }
 
